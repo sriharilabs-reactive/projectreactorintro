@@ -9,15 +9,14 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
-import reactor.core.scheduler.Schedulers;
+
 import reactor.test.StepVerifier;
 
 public class Exercises {
 
   /**
    * TODO 00 READ: Welcome to Project Reactor Intro. We'll be doing a number exercises to get acquainted with this Reactive Streams library.
-   * The exercises are laid out in the form of tests to be able to run them easily. Most tests will verify your code using the StepVerifier.
-   * In some tests you'll have to verify manually.
+   * The exercises are laid out in the form of tests to be able to run them easily. The description of the todos will tell you what's expected.
    *
    * If you import this project into your favorite IDE (IntelliJ), don't forget to mark the test folder as your 'Test Sources Root'.
    */
@@ -76,14 +75,10 @@ public class Exercises {
    * We expect to see the numbers "4, 8, 12, 16, 20" printed on the command line.
    */
 
-  private Consumer<Object> commandLinePrinter = o -> System.out.println(o);
-
   @Test
   public void publisherTest() {
-    Flux.range(1, 10)
-        .filter(n -> n % 2 == 0)
-        .map(n -> n * 2)
-        .subscribe(commandLinePrinter);
+    Flux.range(1, 10);
+    // Let's filter, map, and subscribe
 
     sleep(2000);
   }
@@ -92,7 +87,7 @@ public class Exercises {
    * TODO 03 A reactive data pipeline looks a lot like a Java stream but don't be mislead because there are some huge differences as how
    * they work underneath as well as the possibility to get notified of all kinds of events.
    *
-   * The tree most important events:
+   * The three most important events:
    *
    *    doOnNext
    *      Emission of a new data-element
@@ -110,9 +105,8 @@ public class Exercises {
    */
   @Test
   public void onCompleteTest() {
-    Flux.range(1, 10)
-        .doOnComplete(() -> System.out.println("Completed!"))
-        .subscribe(commandLinePrinter);
+    Flux.range(1, 10);
+    // Let's make clear the Flux completed
 
     sleep(2000);
   }
@@ -122,17 +116,15 @@ public class Exercises {
    *
    * In case an exception happens, somewhere in your data-pipeline, it will send an "onError" signal down the stream so you can act on it.
    * Also note that when this signal is sent the data-pipeline is automatically ended. It (probably) wouldn't make sense to send anymore data
-   * resulting in more errors but you have full control how you want to handle the error (more on that in the exercise below).
+   * resulting in more errors but you have full control how you want to handle the error.
    *
    * Your task here is to cause an exception inside the map method causing an error signal to be send.
    * Next, return the default value "0" in case this happens (look at all the different onError methods)
    */
   @Test
   public void errorHandling() {
-    Flux.just(5)
-        .map(n -> n / 0)
-        .onErrorReturn(0)
-        .subscribe(commandLinePrinter);
+    Flux.just(5);
+        // Let's give a default value
 
     sleep(2000);
   }
@@ -149,7 +141,7 @@ public class Exercises {
     Flux<String> letters = Flux.just("a", "b", "c", "d", "e");
     Flux<Integer> numbers = Flux.range(1, 5);
 
-    Flux<String> lettersAndNumbers = Flux.zip(letters, numbers).map(t -> t.getT1() + t.getT2());
+    Flux<String> lettersAndNumbers = null;
 
     StepVerifier.create(lettersAndNumbers).expectNext("a1", "b2", "c3", "d4", "e5").verifyComplete();
   }
@@ -204,10 +196,10 @@ public class Exercises {
    * The publisher (emitting data) will finish earlier than the subscriber. So they work async now because 'publishOn()' influences the threading
    * context where the rest of the operators in the chain below it will execute, up to a new occurrence of publishOn.
    *
-   * You might have noticed that despite the faster speed of the publisher, all elements are eventually being send down to the subscriber/processor.
+   * You might have noticed that despite the faster speed of the publisher, all elements are eventually being sent down to the subscriber/processor.
    * That is because, by default, the publisher will buffer elements in case of a slow subscriber, emitting the elements when the subscriber is ready for the next.
    * Let's change this to a drop-strategy by using the correct create method on Flux. Now run the test again and notice that some elements will not be processed
-   * because they are beging dropped by the publisher.
+   * because they are being dropped by the publisher.
    */
   @Test
   public void backPressure() {
