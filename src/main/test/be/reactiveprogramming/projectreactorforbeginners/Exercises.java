@@ -10,25 +10,48 @@ import reactor.test.StepVerifier;
 public class Exercises {
 
   /**
-   * TODO 00 READ: Welcome to Project Reactor Intro. We'll be doing a number exercises to get acquainted with this Reactive Streams library. The exercises are laid out in the form of tests
-   * to be able to run them easily. These tests will try to verify your results as well as possible through the StepVerifier, but often you'll also have to check manually if they worked as inspected.
+   * TODO 00 READ: Welcome to Project Reactor Intro. We'll be doing a number exercises to get acquainted with this Reactive Streams library.
+   * The exercises are laid out in the form of tests to be able to run them easily. Most tests will verify your code using the StepVerifier.
+   * In some tests you'll have to verify manually.
+   *
+   * If you import this project into your favorite IDE (IntelliJ), don't forget to mark the test folder as your 'Test Sources Root'.
    */
 
   /**
-   * TODO 01 READ: Reactive Programming consists out of Reactive Pipelines formed by Producers sending signals with data to Subscribers. Often these Subscribers are message Producers as well and will
-   * send the signals further on to other Subscribers after filtering or mapping them to new values.
+   * TODO 01 READ: Reactive Programming is all about data Pipelines through which your data flows. The programming model works around these 4 concepts:
    *
-   * The Flux is the most common Publisher in Project Reactor, but one of the most versatile at the same time. It will emit 0, 1, or any number of signals to its Subscriber, until it ends with either
-   * an "onComplete" or "onError" signal. There's also a more basic version of the Flux called the Mono, which will emit either 0 or 1 value, or emits an "onError" signal.
+   * Producers
+   *    Emit the data (source of your data pipeline)
+   * Subscribers
+   *    Receive the data (tail of your data pipeline)
+   * Subscription
+   *    When you subscribe to a producer you get a subscription (comparable to a session). This subscription contains the context information and
+   *    also allows the subscriber to control the receiving data stream (ex. backpressure)
+   * Processors
+   *    Are both subscribers and producer. They subscribe to the datastream upstream, do an operation on the data and emit the data downstream.
+   *    Ex. a filter or a mapper
    *
-   * Both Fluxes and Monos form a part of a Reactive Pipeline. These pipelines can be extended with new Producers and Subscribers through a builder pattern. Before the Flux does anything, it needs to
-   * be subscribed to using the subscribe method. This method can have an optional Consumer parameter, this Consumer will process the information that Streams to the end of the pipeline.
+   * In Project Reactor we can distinguish 2 types of Producers:
+   *    Flux
+   *      This is the most common Publisher but one of the most versatile at the same time.
+   *      It will emit 0, 1, or any number of signals until it ends with either an "onComplete" or "onError" signal
    *
-   * Usually the "source" Fluxes in an application will be supplied from external resources that are Producers of these signals, like a messaging system, database resultset, a filehandle, etc. For
-   * simplicity's sake however, these exercises will be created with some basic values that will be provided in the Flux itself.
+   *    Mono
+   *      This producer will emit either 0 or 1 value, or emits an "onError" signal
    *
-   * The exercises will explain the result you should try to achieve, which you can visualize by printing to your Console. Reactive Pipelines work in a non-blocking way, so you'll be required to use
-   * the sleep() method underneath this text to make sure the thread doesn't stop by itself.
+   * Reactive programming builds on top of functional programming and therefore relies on the concepts of:
+   *    Functional composition
+   *      The API is really nice allowing you to use a builder pattern style to compose your data pipeline in a very readable manner
+   *    Lazy evaluation
+   *      Before the Flux does anything, it needs to be subscribed to using the subscribe method. This method can have an optional Consumer parameter, this Consumer
+   *      will process the information that Streams to the end of the pipeline.
+   *
+   * Usually the "source" Fluxes in an application will be supplied from external resources that are Producers of these signals, like a messaging system,
+   * database resultset, a filehandle, etc. For simplicity's sake however, these exercises will be created with some basic values that will be provided
+   * in the Flux itself.
+   *
+   * The exercises will explain the result you should try to achieve, which you can visualize by printing to your Console. Reactive Pipelines work in a
+   * non-blocking way, so you'll often be required to use the sleep() method below to keep the main thread running.
    */
 
   public void sleep(int milliSeconds) {
@@ -39,8 +62,11 @@ public class Exercises {
   }
 
   /**
-   * TODO 02 Create your first Reactive Pipeline of Publishers and Subscribers from this initial Flux. Apply a filter to remove the uneven numbers, and then map the numbers by multiplying them by two.
-   * Don't forget to subscribe to the Reactive Stream with a Consumer that prints to the command line. Can you even pull out this Consumer to reuse it between exercises?
+   * TODO 02 Create your first Reactive Pipeline of Publishers and Subscribers from this initial Flux. Apply a filter to remove the uneven numbers
+   * and then map the numbers by multiplying them by two.
+   *
+   * Don't forget to subscribe to the Reactive Stream with a Consumer that prints to the command line.
+   * Can you even pull out this Consumer to reuse it between exercises?
    *
    * We expect to see the numbers "4, 8, 12, 16, 20" printed on the command line.
    */
@@ -58,8 +84,24 @@ public class Exercises {
   }
 
   /**
-   * TODO 03 We can see a bit more information of what goes on in Project Reactor by using methods like "doEach" and "doOnComplete" on a Flux. These will trigger the run method on their Consumer or
-   * Runnable parameter the moment a new value, or an "onComplete" gets signaled. Use this method to print out "complete" when you receive the complete signal.
+   * TODO 03 A reactive data pipeline looks a lot like a Java stream but don't be mislead because there are some huge differences as how
+   * they work underneath as well as the possibility to get notified of all kinds of events.
+   *
+   * The tree most important events:
+   *
+   *    doOnNext
+   *      Emission of a new data-element
+   *
+   *    doOnError
+   *      Error termination (the data pipeline is closed)
+   *
+   *    Flux#doOnComplete, Mono#doOnSuccess
+   *      The end of the data stream
+   *
+   * In project reactor there are a lot more events like doOnEach, ... If you're interested, take a look here :
+   * "https://projectreactor.io/docs/core/release/reference/#which.peeking
+   *
+   * Use the doOnComplete method to print out "Completed!" when you receive the complete signal.
    */
   @Test
   public void onCompleteTest() {
@@ -71,9 +113,14 @@ public class Exercises {
   }
 
   /**
-   * TODO 04 Errors are first class citizens in Project Reactor. In case an exception happens in a Producer, it will send an "onError" signal, so an interaction can happen based on it. When this
-   * signal is sent, the Producer is automatically ended. Try to cause an exception to happen inside a map method, so the created Flux will send an error signal. Try to chain on a method that will
-   * return the default value "0" in case this happens.
+   * TODO 04 The reactive manifesto states resilience as one of the four concepts, meaning that we want to treat Errors as first class citizens.
+   *
+   * In case an exception happens, somewhere in your data-pipeline, it will send an "onError" signal down the stream so you can act on it.
+   * Also note that when this signal is sent the data-pipeline is automatically ended. It (probably) wouldn't make sense to send anymore data
+   * resulting in more errors but you have full control how you want to handle the error (more on that in the exercise below).
+   *
+   * Your task here is to cause an exception inside the map method causing an error signal to be send.
+   * Next, return the default value "0" in case this happens (look at all the different onError methods)
    */
   @Test
   public void errorHandling() {
@@ -86,9 +133,11 @@ public class Exercises {
   }
 
   /**
-   * TODO 05 Different Fluxes can be combined into one through different methods. Take a look at the article https://www.reactiveprogramming.be/project-reactor-combining-fluxes/ to see a couple of
-   * ways to combine different Fluxes. Give the zipWith method a try to combine the following two Fluxes into one. The test will end with a StepVerifier. This is a mechanism supplied by Project
-   * Reactor to easily test your Reactive Pipelines.
+   * TODO 05 Different Fluxes can be combined into one through different methods. Take a look at the article below to see some examples:
+   * https://www.reactiveprogramming.be/project-reactor-combining-fluxes/
+   *
+   * Give the zipWith method a try to combine the following two Fluxes into one. The test will end with a StepVerifier.
+   * This is a mechanism supplied by Project Reactor to easily test your Reactive Pipelines.
    */
   @Test
   public void sharingTheInput() {
