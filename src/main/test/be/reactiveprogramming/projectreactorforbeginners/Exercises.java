@@ -176,8 +176,6 @@ public class Exercises {
     Flux<Long> numbers = Flux.interval(Duration.ofSeconds(1)).share();
 
     numbers.subscribe(process("subscriber 1:"));
-    sleep(5000);
-    numbers.subscribe(process("subscriber 2:"));
 
     sleep(10000);
   }
@@ -213,10 +211,10 @@ public class Exercises {
    */
   @Test
   public void backPressure() {
-    Flux<Integer> numbers = Flux.create(emitter -> emit(emitter), FluxSink.OverflowStrategy.DROP);
+    Flux<Integer> numbers = Flux.create(emitter -> emit(emitter));
 
     numbers
-           .publishOn(Schedulers.parallel(), 1)
+           //.publishOn(Schedulers.parallel(), 1)
            .map(e -> e * 1)
            .subscribe(e -> slowProcessor(e),
                       err -> System.out.println(err),
@@ -283,13 +281,11 @@ public class Exercises {
       @Override
       public void onSubscribe(Subscription s) {
         this.subscription = s;
-        subscription.request(1);
       }
 
       @Override
       public void onNext(Integer integer) {
         System.out.println("* "+integer);
-        subscription.request(1);
       }
 
       @Override
