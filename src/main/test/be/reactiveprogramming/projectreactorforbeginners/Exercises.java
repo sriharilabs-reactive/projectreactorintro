@@ -155,7 +155,44 @@ public class Exercises {
   }
 
   /**
-   * TODO 06 Nonblocking backpressure
+   * TODO 06 multiple subscribers
+   *
+   * In contrast to Java streams, a reactive stream can have multiple subscribers and there are different strategies on how you want to handle this.
+   * In the test below we have a publisher emitting data every second. Run it and see how it prints a new number every second.
+   *
+   * Make a second subscription with a delay of 5 seconds in between both subscriptions (HINT: use the sleep() method)
+   * Run your test and notice that the second subscriber jumps in after 5 seconds with the first element of the publisher : '0'
+   *
+   * This is like watching a movie on youtube where a second user wants to start from the beginning (= 2 different subscriptions)
+   *
+   * Now if we switch to television and the second user turns on his TV after 5 seconds, you would have missed the first 5 seconds and see what everyone
+   * else is seeing at that exact moment (= 1 shared subscription)
+   *
+   * Let's modify the exercise to do just that. We want to change the publisher to share the subscription. Look at the Flux API on how to do that.
+   * Run your test again and you should see the second subscription jumping in after 5 seconds getting the same data as the first subscriber
+   */
+  @Test
+  public void multipleSubscribers() {
+    Flux<Long> numbers = Flux.interval(Duration.ofSeconds(1)).share();
+
+    numbers.subscribe(process("subscriber 1:"));
+    sleep(5000);
+    numbers.subscribe(process("subscriber 2:"));
+
+    sleep(10000);
+  }
+
+  private Consumer<Long> process(String subscriber) {
+    return new Consumer<Long>() {
+      @Override
+      public void accept(Long l) {
+        System.out.println(subscriber + " " +l);
+      }
+    };
+  }
+
+  /**
+   * TODO 07 Nonblocking backpressure
    *
    * Look at the code, you'll see a (fast) publisher/flux and a (slow) subscriber/processor.
    * Run the test and notice that both the producer & subscriber run synchronously: emitting 1 element & processing it before the next element is emitted.
@@ -207,7 +244,7 @@ public class Exercises {
   }
 
   /**
-   *  TODO 07 Backpressure: subscriber in full control
+   *  TODO 08 Backpressure: subscriber in full control
    *
    *  A different strategy on backpressure is to have the subscriber ask for the next x elements when ready.
    *  That's what we'll do here.
@@ -270,40 +307,4 @@ public class Exercises {
     System.out.println("**** END ****");
   }
 
-  /**
-   * TODO 08 multiple subscribers
-   *
-   * In contrast to Java streams, a reactive stream can have multiple subscribers and there are different strategies on how you want to handle this.
-   * In the test below we have a publisher emitting data every second. Run it and see how it prints a new number every second.
-   *
-   * Make a second subscription with a delay of 5 seconds in between both subscriptions (HINT: use the sleep() method)
-   * Run your test and notice that the second subscriber jumps in after 5 seconds with the first element of the publisher : '0'
-   *
-   * This is like watching a movie on youtube where a second user wants to start from the beginning (= 2 different subscriptions)
-   *
-   * Now if we switch to television and the second user turns on his TV after 5 seconds, you would have missed the first 5 seconds and see what everyone
-   * else is seeing at that exact moment (= 1 shared subscription)
-   *
-   * Let's modify the exercise to do just that. We want to change the publisher to share the subscription. Look at the Flux API on how to do that.
-   * Run your test again and you should see the second subscription jumping in after 5 seconds getting the same data as the first subscriber
-   */
-  @Test
-  public void multipleSubscribers() {
-    Flux<Long> numbers = Flux.interval(Duration.ofSeconds(1)).share();
-
-    numbers.subscribe(process("subscriber 1:"));
-    sleep(5000);
-    numbers.subscribe(process("subscriber 2:"));
-
-    sleep(10000);
-  }
-
-  private Consumer<Long> process(String subscriber) {
-    return new Consumer<Long>() {
-      @Override
-      public void accept(Long l) {
-        System.out.println(subscriber + " " +l);
-      }
-    };
-  }
 }
